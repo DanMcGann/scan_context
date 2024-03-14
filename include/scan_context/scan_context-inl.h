@@ -61,9 +61,9 @@ ScanContext<PointType>::ScanContext(const std::vector<PointType>& lidar_scan, co
   // Iterate over all points
   for (const PointType& point : lidar_scan) {
     // Compute range to point
-    const double range = std::sqrt(point(0) * point(0) + point(1) * point(1) + point(2) * point(2));  // meters
-    const double angle_rad = std::fmod(std::atan2(point(1), point(0)) + 2 * M_PI, 2 * M_PI);          // radians
-    const double height = point(2);                                                                   // meters
+    const double range = std::sqrt(point(0) * point(0) + point(1) * point(1));                // meters
+    const double angle_rad = std::fmod(std::atan2(point(1), point(0)) + 2 * M_PI, 2 * M_PI);  // radians
+    const double height = point(2);                                                           // meters
     // Include points only they are within the parameterized range
     if (range < params_.max_range) {
       // Get the index for this point

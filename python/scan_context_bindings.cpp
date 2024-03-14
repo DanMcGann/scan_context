@@ -28,7 +28,7 @@ PYBIND11_MODULE(scan_context_python, m) {
   py::class_<ScanContextPybind::Params>(m, "ScanContextParams")
       .def(py::init<>())
       .def_readwrite("number_sectors", &ScanContextPybind::Params::number_sectors)
-      .def_readwrite("ringKey", &ScanContextPybind::Params::number_rings)
+      .def_readwrite("number_rings", &ScanContextPybind::Params::number_rings)
       .def_readwrite("max_range", &ScanContextPybind::Params::max_range)
       .def("equals", &ScanContextPybind::Params::equals, py::arg("other"));
 }
