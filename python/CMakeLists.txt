@@ -1,7 +1,6 @@
 message(STATUS "================  PYTHON BINDINGS ENABLED. BUILDING BINDINGS  ======================")
 
 # Fetch pybind to build the python bindings
-include(FetchContent)
 FetchContent_Declare(
   pybind11
   GIT_REPOSITORY https://github.com/pybind/pybind11.git

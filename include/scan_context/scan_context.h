@@ -58,6 +58,9 @@ class ScanContext {
   /// @brief Accessor to the ring key that guards against modification
   const Eigen::VectorXd& ringKey() const;
 
+  /// @brief Accessor to the params that guards against modification
+  const Params& params() const;
+
   /** @brief Computes the distance between this descriptor and the other descriptor
    * Distance is defined as as the column-wise cosine distance minimized over all possible column shifts.
    * See [1] Eq.6 for exact details.

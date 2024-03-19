@@ -5,6 +5,7 @@
  */
 #pragma once
 #include <cmath>
+#include <iostream>
 #include <numeric>
 
 #include "scan_context/scan_context.h"
@@ -22,6 +23,7 @@
 /*********************************************************************************************************************/
 template <class PointType>
 bool ScanContext<PointType>::Params::equals(const Params& other) const {
+  // Check all parameters are equal
   return this->number_sectors == other.number_sectors &&  //
          this->number_rings == other.number_rings &&      //
          this->max_range == other.max_range;
@@ -80,8 +82,6 @@ ScanContext<PointType>::ScanContext(const std::vector<PointType>& lidar_scan, co
       // Update the min height for later normalization
       min_height = std::min(min_height, height);
     }
-
-    // TODO construct the ring_Key
   }
 
   // Normalize the descriptor according to the min height, leaving uninitialized cells as zero
@@ -89,6 +89,11 @@ ScanContext<PointType>::ScanContext(const std::vector<PointType>& lidar_scan, co
     for (size_t s = 0; s < params.number_sectors; s++) {
       if (descriptor_(r, s) != 0.0) descriptor_(r, s) -= min_height;
     }
+  }
+
+  // Construct the ring key for the now complete ScanContext
+  for (size_t r = 0; r < params_.number_rings; r++) {
+    ring_key_(r) = static_cast<double>(descriptor_.row(r).array().count()) / params_.number_sectors;
   }
 }
 
@@ -102,6 +107,11 @@ const Eigen::MatrixXd& ScanContext<PointType>::descriptor() const {
 template <class PointType>
 const Eigen::VectorXd& ScanContext<PointType>::ringKey() const {
   return ring_key_;
+}
+/*********************************************************************************************************************/
+template <class PointType>
+const typename ScanContext<PointType>::Params& ScanContext<PointType>::params() const {
+  return params_;
 }
 
 /*********************************************************************************************************************/
@@ -133,11 +143,10 @@ double ScanContext<PointType>::shiftedDistance(const size_t& sector_offset, cons
   double sum_term = 0.0;
   for (size_t sector_idx = 0; sector_idx < params_.number_sectors; sector_idx++) {
     // Compute the sector for this sector idx after the rotation by sector_offset
-    size_t this_offset_sector_idx = (sector_idx + sector_offset) % params_.number_sectors;
+    const size_t this_offset_sector_idx = (sector_idx + sector_offset) % params_.number_sectors;
     // Extract the respective columns from the two descriptors
     const Eigen::VectorXd this_sector = descriptor_.col(this_offset_sector_idx);
     const double this_norm = this_sector.norm();
-
     const Eigen::VectorXd other_sector = other.descriptor_.col(sector_idx);
     const double other_norm = other_sector.norm();
 
@@ -145,7 +154,7 @@ double ScanContext<PointType>::shiftedDistance(const size_t& sector_offset, cons
      * Note: there are two edge cases, if either sector is empty
      * If both are empty we say the distance is zero
      * If only one is empty we say distance is equal two 1 (i.e. vectors are orthogonal)
-     * WARN: These edge cases are never addressed in [1]
+     * WARN: These edge cases are never addressed in [1], so these are based on intuition
      */
     if (this_norm > 0 && other_norm > 0) {  // Standard Cosine Distance
       sum_term += 1 - ((this_sector.dot(other_sector)) / (this_sector.norm() * other_sector.norm()));

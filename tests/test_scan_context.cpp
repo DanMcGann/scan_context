@@ -25,6 +25,7 @@ TEST(TestScanContext, SimpleConstruction) {
   ASSERT_NEAR(sc.descriptor()(0, 3), 0.0, 1e-9);
 }
 
+/*********************************************************************************************************************/
 TEST(TestScanContext, ConstructionWithNegativeHeight) {
   ScanContextEigen::Params params;
   params.max_range = 10;
@@ -45,6 +46,7 @@ TEST(TestScanContext, ConstructionWithNegativeHeight) {
   ASSERT_NEAR(sc.descriptor()(0, 3), 0.0, 1e-9);
 }
 
+/*********************************************************************************************************************/
 TEST(TestScanContext, EquivDistance) {
   ScanContextEigen::Params params;
   params.max_range = 10;
@@ -61,6 +63,7 @@ TEST(TestScanContext, EquivDistance) {
   ASSERT_NEAR(sc.distance(sc2), 0.0, 1e-9);
 }
 
+/*********************************************************************************************************************/
 TEST(TestScanContext, EquivDistanceRotated) {
   ScanContextEigen::Params params;
   params.max_range = 10;
@@ -83,6 +86,7 @@ TEST(TestScanContext, EquivDistanceRotated) {
   ASSERT_NEAR(sc.distance(sc2), 0.0, 1e-9);
 }
 
+/*********************************************************************************************************************/
 TEST(TestScanContext, DiffDistance) {
   ScanContextEigen::Params params;
   params.max_range = 10;
@@ -105,4 +109,40 @@ TEST(TestScanContext, DiffDistance) {
   ScanContextEigen sc2(lidar_scan_2, params);
 
   ASSERT_GT(sc.distance(sc2), 0.0);
+}
+
+/*********************************************************************************************************************/
+TEST(TestScanContext, TestRingKeySimple) {
+  ScanContextEigen::Params params;
+  params.max_range = 10;
+  params.number_rings = 2;
+  params.number_sectors = 4;
+
+  std::vector<Eigen::Vector3d> lidar_scan;
+  lidar_scan.push_back(Eigen::Vector3d(1, 1, 0));
+  lidar_scan.push_back(Eigen::Vector3d(1, 1, 5));
+
+  ScanContextEigen sc(lidar_scan, params);
+  ASSERT_NEAR(sc.ringKey()(0), 1.0 / 4.0, 1e-9);
+  ASSERT_NEAR(sc.ringKey()(1), 0, 1e-9);
+}
+
+/*********************************************************************************************************************/
+TEST(TestScanContext, TestRingKeyComplex) {
+  ScanContextEigen::Params params;
+  params.max_range = 10;
+  params.number_rings = 2;
+  params.number_sectors = 4;
+
+  std::vector<Eigen::Vector3d> lidar_scan;
+  lidar_scan.push_back(Eigen::Vector3d(1, 1, 0));
+  lidar_scan.push_back(Eigen::Vector3d(1, 1, 5));
+
+  lidar_scan.push_back(Eigen::Vector3d(5, 5, 5));
+  lidar_scan.push_back(Eigen::Vector3d(-5, -5, 5));
+  lidar_scan.push_back(Eigen::Vector3d(5, -5, 5));
+
+  ScanContextEigen sc(lidar_scan, params);
+  ASSERT_NEAR(sc.ringKey()(0), 1.0 / 4.0, 1e-9);
+  ASSERT_NEAR(sc.ringKey()(1), 3.0 / 4.0, 1e-9);
 }
