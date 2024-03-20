@@ -138,7 +138,7 @@ TEST(TestScanContext, DeletedTree) {
 }
 
 /*********************************************************************************************************************/
-TEST(TestScanContext, KGreaterThanTreeSize) {
+TEST(TestScanContext, KnnGreaterThanTreeSize) {
   auto [sc_params, db_params] = params();
   // Generate the database
   DatabaseEigen database(db_params);
@@ -149,6 +149,20 @@ TEST(TestScanContext, KGreaterThanTreeSize) {
   std::optional<size_t> idx = database.query(query);
   ASSERT_TRUE(idx);
   ASSERT_EQ(*idx, 0);
+}
+
+/*********************************************************************************************************************/
+TEST(TestScanContext, KGreaterThanTreeSize) {
+  auto [sc_params, db_params] = params();
+  // Generate the database
+  DatabaseEigen database(db_params);
+  database.insert(0, randomSC(5000, sc_params));
+  // Generate a query
+  ScanContextEigen query = randomSC(5000, sc_params);
+  // test
+  std::vector<size_t> result = database.queryK(query, 10);
+  ASSERT_EQ(result.size(), 1);
+  ASSERT_EQ(result[0], 0);
 }
 
 /*********************************************************************************************************************/
@@ -166,7 +180,7 @@ TEST(TestScanContext, TestThreshold) {
   ASSERT_FALSE(idx);
 }
 
-/*********************************************************************************************************************/
+/********************************************************************************************************************
 TEST(TestScanContext, ProfileRebuild100) {
   auto [sc_params, db_params] = params();
 
@@ -197,8 +211,9 @@ TEST(TestScanContext, ProfileRebuild100) {
   std::cout << "Avg Insert: " << insert_total / 1000.0 << std::endl;
   std::cout << "Avg Query: " << query_total / 1000.0 << std::endl;
 }
+*/
 
-/*********************************************************************************************************************/
+/*******************************************************************************************************************
 TEST(TestScanContext, ProfileRebuild1) {
   auto [sc_params, db_params] = params();
   db_params.kdtree_rebuild_threshold = 1;
@@ -230,3 +245,4 @@ TEST(TestScanContext, ProfileRebuild1) {
   std::cout << "Avg Insert: " << insert_total / 1000.0 << std::endl;
   std::cout << "Avg Query: " << query_total / 1000.0 << std::endl;
 }
+**/

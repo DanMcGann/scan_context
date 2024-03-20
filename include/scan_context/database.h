@@ -131,9 +131,20 @@ class ScanContextDatabase {
   void tryRebuild();
 
   /** @brief Retrieves the k nearest neighbors from the ring key tree accounting for the removal_queue_
+   * @param query: The query ScanContext for which we are finding the closest match in the database
+   * @param k: The max number of matched ScanContexts to return
+   * @returns The top k ScanContexts that match the query if there are sufficient points in the database
    * WARN: May query the underlying kdtree multiple times
    */
   std::vector<std::pair<size_t, double>> findRingKeyNeighborsSafe(const ScanContext<PointType>& query, size_t k) const;
+
+  /** @brief We commonly store references to descriptors with their distances pair[key, distance]
+   * This function provides comparison to use in standard algorithms on such paris
+   *
+   */
+  static bool keyDistPairComp(const std::pair<size_t, double>& lhs, const std::pair<size_t, double>& rhs) {
+    return lhs.second < rhs.second;
+  }
 };
 
 /// Include the implementation of the database

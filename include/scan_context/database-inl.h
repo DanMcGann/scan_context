@@ -59,9 +59,7 @@ std::vector<size_t> ScanContextDatabase<PointType>::queryK(const ScanContext<Poi
   double worst_ring_key_distance = std::numeric_limits<double>::max();
   if (ring_key_neighbors.size() > 0) {
     worst_ring_key_distance =
-        (std::max_element(ring_key_neighbors.begin(), ring_key_neighbors.end(), [](auto& left, auto& right) {
-          return left.second < right.second;
-        }))->second;
+        (std::max_element(ring_key_neighbors.begin(), ring_key_neighbors.end(), keyDistPairComp))->second;
   }
 
   // Traverse the insertion queue and add any element closer than the worst tree neighbor
@@ -71,24 +69,21 @@ std::vector<size_t> ScanContextDatabase<PointType>::queryK(const ScanContext<Poi
   }
 
   // Sort all the ring key neighbors according to their distance
-  std::sort(ring_key_neighbors.begin(), ring_key_neighbors.end(),
-            [](auto& left, auto& right) { return left.second < right.second; });
+  std::sort(ring_key_neighbors.begin(), ring_key_neighbors.end(), keyDistPairComp);
 
   // For the top number_rink_key_nn compute their ScanContext Distance
   std::vector<std::pair<size_t, double>> scan_context_neighbors;
   for (size_t i = 0; i < std::min(number_rink_key_nn, ring_key_neighbors.size()); i++) {
-    size_t candidate_key = ring_key_neighbors[i].first;
-    ScanContext<PointType> candidate =
-        database_.count(candidate_key) ? database_.at(candidate_key) : insertion_queue_.at(candidate_key);
-    double distance = query.distance(candidate);
+    const size_t key = ring_key_neighbors[i].first;
+    const ScanContext<PointType> candidate = database_.count(key) ? database_.at(key) : insertion_queue_.at(key);
+    const double distance = query.distance(candidate);
     if (distance < params_.query_distance_threshold) {
-      scan_context_neighbors.push_back(std::make_pair(candidate_key, distance));
+      scan_context_neighbors.push_back(std::make_pair(key, distance));
     }
   }
 
   // Sort all the scan context neighbors according to their distance
-  std::sort(scan_context_neighbors.begin(), scan_context_neighbors.end(),
-            [](auto& left, auto& right) { return left.second < right.second; });
+  std::sort(scan_context_neighbors.begin(), scan_context_neighbors.end(), keyDistPairComp);
 
   // Accumulate the final results
   std::vector<size_t> knn;
@@ -101,7 +96,7 @@ std::vector<size_t> ScanContextDatabase<PointType>::queryK(const ScanContext<Poi
 /*********************************************************************************************************************/
 template <class PointType>
 void ScanContextDatabase<PointType>::tryRebuild() {
-  // Do not rebuild until we have sufficient modifications
+  // Do not rebuild until we have sufficient modifications [early exit]
   if ((insertion_queue_.size() + removal_queue_.size()) < params_.kdtree_rebuild_threshold) return;
 
   // Insert all queued descriptors to the database
