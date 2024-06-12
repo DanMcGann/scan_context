@@ -10,14 +10,14 @@ find_package(Eigen3 REQUIRED)
 
 # nanoflann is a base dependency for KNN search in the database
 include(FetchContent)
+set(NANOFLANN_BUILD_EXAMPLES OFF CACHE BOOL "Do not build nanoflann examples")
+set(NANOFLANN_BUILD_TESTS OFF CACHE BOOL "Do not build nanoflann tests")
 FetchContent_Declare(
   nanoflann
   GIT_REPOSITORY https://github.com/jlblancoc/nanoflann.git
   GIT_TAG        v1.5.5
 )
 FetchContent_MakeAvailable(nanoflann)
-set(NANOFLANN_BUILD_EXAMPLES OFF)
-
 
 # Define the library
 add_library(ScanContext INTERFACE)
