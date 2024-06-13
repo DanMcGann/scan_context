@@ -1,4 +1,6 @@
 # Scan Context
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 This library provides a simple and light weight implementation of the ScanContext descriptor and place recognition database originally presented in [1]. Specifically, this library provides functionality to 1) Compute ScanContext descriptors from LiDAR Scans and 2) maintain and query a database of descriptors for LiDAR place recognition.
 
 [1] G. Kim and A. Kim, "Scan Context: Egocentric Spatial Descriptor for Place Recognition Within 3D Point Cloud Map," 2018 IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS), Madrid, Spain, 2018, pp. 4802-4809,
