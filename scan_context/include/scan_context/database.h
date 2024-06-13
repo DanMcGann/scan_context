@@ -18,18 +18,19 @@
 #pragma once
 #include <scan_context/scan_context.h>
 
+#include <map>
 #include <memory>
 #include <nanoflann.hpp>
 #include <optional>
+#include <set>
 
-template <class PointType>
 class ScanContextDatabase {
   /** TYPES **/
  public:
   struct Params {
     //// @brief The parameters for all ScanContexts added to the database.
     //// All ScanContexts added to the database must use the same params to ensure they are comparable
-    typename ScanContext<PointType>::Params sc_params;
+    typename ScanContext::Params sc_params;
 
     /// @brief The number of ring key nearest neighbors over which to compare ScanContext distances
     size_t number_ring_key_nn{5};
@@ -76,10 +77,10 @@ class ScanContextDatabase {
   std::vector<size_t> index_;
 
   /// @brief The internal database of ScanContext descriptors
-  std::map<size_t, ScanContext<PointType>> database_;
+  std::map<size_t, ScanContext> database_;
 
   /// @brief The queue of ScanContexts to add to the database during the next rebuild
-  std::map<size_t, ScanContext<PointType>> insertion_queue_;
+  std::map<size_t, ScanContext> insertion_queue_;
   /// @brief The queue of ScanContexts to remove from the database during the next rebuild
   std::set<size_t> removal_queue_;
 
@@ -99,7 +100,7 @@ class ScanContextDatabase {
    * @throws std::invalid_argument - If the scan_context uses different params than the database
    * WARN: This function can be slow if params.kdtree_rebuild_threshold is hit and we initiate a rebuild of the KDTree
    */
-  void insert(size_t key, const ScanContext<PointType>& scan_context);
+  void insert(size_t key, const ScanContext& scan_context);
 
   /** @brief Removes the ScanContext associated with the given key from the database
    * @param key: The unique identifier for the scan_context to be removed
@@ -111,7 +112,7 @@ class ScanContextDatabase {
    * @param query: The query ScanContext for which we are finding the closest match in the database
    * @returns The closest matching element in the database or null if none exist
    */
-  std::optional<size_t> query(const ScanContext<PointType>& query) const;
+  std::optional<size_t> query(const ScanContext& query) const;
 
   /** @brief Queries the database for the keys of the top k ScanContexts that most match the query
    * @param query: The query ScanContext for which we are finding the closest match in the database
@@ -120,7 +121,7 @@ class ScanContextDatabase {
    * WARN: k may override Params::number_ring_key_nn when searching for nearest ring keys
    * WARN: Less than k results may be returned if there are not k valid results
    */
-  std::vector<size_t> queryK(const ScanContext<PointType>& query, size_t k) const;
+  std::vector<size_t> queryK(const ScanContext& query, size_t k) const;
 
   /** HELPERS **/
  protected:
@@ -136,7 +137,7 @@ class ScanContextDatabase {
    * @returns The top k ScanContexts that match the query if there are sufficient points in the database
    * WARN: May query the underlying kdtree multiple times
    */
-  std::vector<std::pair<size_t, double>> findRingKeyNeighborsSafe(const ScanContext<PointType>& query, size_t k) const;
+  std::vector<std::pair<size_t, double>> findRingKeyNeighborsSafe(const ScanContext& query, size_t k) const;
 
   /** @brief We commonly store references to descriptors with their distances pair[key, distance]
    * This function provides comparison to use in standard algorithms on such paris
@@ -146,6 +147,3 @@ class ScanContextDatabase {
     return lhs.second < rhs.second;
   }
 };
-
-/// Include the implementation of the database
-#include "scan_context/database-inl.h"

@@ -3,13 +3,12 @@
  *  @author Dan McGann
  *  @date March 2024
  */
-#pragma once
-
 #include "scan_context/database.h"
 
+#include <stdexcept>
+
 /*********************************************************************************************************************/
-template <class PointType>
-void ScanContextDatabase<PointType>::insert(size_t key, const ScanContext<PointType>& scan_context) {
+void ScanContextDatabase::insert(size_t key, const ScanContext& scan_context) {
   // Guard Code
   if (!params_.sc_params.equals(scan_context.params())) {
     throw std::invalid_argument(
@@ -25,8 +24,7 @@ void ScanContextDatabase<PointType>::insert(size_t key, const ScanContext<PointT
 }
 
 /*********************************************************************************************************************/
-template <class PointType>
-void ScanContextDatabase<PointType>::remove(size_t key) {
+void ScanContextDatabase::remove(size_t key) {
   // Try to remove from the insertion queue, if nothing is removed, add it to the queue
   if (!insertion_queue_.erase(key)) {
     removal_queue_.insert(key);
@@ -36,8 +34,7 @@ void ScanContextDatabase<PointType>::remove(size_t key) {
 }
 
 /*********************************************************************************************************************/
-template <class PointType>
-std::optional<size_t> ScanContextDatabase<PointType>::query(const ScanContext<PointType>& query) const {
+std::optional<size_t> ScanContextDatabase::query(const ScanContext& query) const {
   std::vector<size_t> matches = queryK(query, 1);
   if (matches.size()) {
     return matches[0];
@@ -47,8 +44,7 @@ std::optional<size_t> ScanContextDatabase<PointType>::query(const ScanContext<Po
 }
 
 /*********************************************************************************************************************/
-template <class PointType>
-std::vector<size_t> ScanContextDatabase<PointType>::queryK(const ScanContext<PointType>& query, size_t k) const {
+std::vector<size_t> ScanContextDatabase::queryK(const ScanContext& query, size_t k) const {
   // Determine the number of ring-key nearest neighbors to retrieve
   size_t number_rink_key_nn = std::max(k, params_.number_ring_key_nn);
 
@@ -75,7 +71,7 @@ std::vector<size_t> ScanContextDatabase<PointType>::queryK(const ScanContext<Poi
   std::vector<std::pair<size_t, double>> scan_context_neighbors;
   for (size_t i = 0; i < std::min(number_rink_key_nn, ring_key_neighbors.size()); i++) {
     const size_t key = ring_key_neighbors[i].first;
-    const ScanContext<PointType> candidate = database_.count(key) ? database_.at(key) : insertion_queue_.at(key);
+    const ScanContext candidate = database_.count(key) ? database_.at(key) : insertion_queue_.at(key);
     const double distance = query.distance(candidate);
     if (distance < params_.query_distance_threshold) {
       scan_context_neighbors.push_back(std::make_pair(key, distance));
@@ -94,8 +90,7 @@ std::vector<size_t> ScanContextDatabase<PointType>::queryK(const ScanContext<Poi
 }
 
 /*********************************************************************************************************************/
-template <class PointType>
-void ScanContextDatabase<PointType>::tryRebuild() {
+void ScanContextDatabase::tryRebuild() {
   // Do not rebuild until we have sufficient modifications [early exit]
   if ((insertion_queue_.size() + removal_queue_.size()) < params_.kdtree_rebuild_threshold) return;
 
@@ -118,9 +113,8 @@ void ScanContextDatabase<PointType>::tryRebuild() {
 }
 
 /*********************************************************************************************************************/
-template <class PointType>
-std::vector<std::pair<size_t, double>> ScanContextDatabase<PointType>::findRingKeyNeighborsSafe(
-    const ScanContext<PointType>& query, size_t k) const {
+std::vector<std::pair<size_t, double>> ScanContextDatabase::findRingKeyNeighborsSafe(const ScanContext& query,
+                                                                                     size_t k) const {
   bool continue_search = true;
   std::vector<std::pair<size_t, double>> neighbors;
   size_t num_results = k;

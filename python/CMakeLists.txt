@@ -21,7 +21,7 @@ set_target_properties(scan_context_python PROPERTIES
     LIBRARY_OUTPUT_DIRECTORY "${SCAN_CONTEXT_PYTHON_BUILD_DIRECTORY}/scan_context"
     DEBUG_POSTFIX "" # Otherwise you will have a wrong name
     RELWITHDEBINFO_POSTFIX "" # Otherwise you will have a wrong name
-    )
+)
 
 # Install Python
 # Generate the setup.py file in the correct directory. This will be used to install the python module.

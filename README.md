@@ -11,9 +11,9 @@ This library provides a simple and light weight implementation of the ScanContex
 # Documentation
 
 #### Project Structure
-* `include/scan_context/` - Contains the all implementation
-  * `scan_context*` - Provides implementation to compute and store ScanContext descriptors.
-  * `database*` - Provides implementation of incremental database for LiDAR place recognition with ScanContext.
+* `scan_context/` - Contains the implementation in `include + src` subdirectories
+  * `scan_context` - Provides implementation to compute and store ScanContext descriptors.
+  * `database` - Provides implementation of incremental database for LiDAR place recognition with ScanContext.
 * `python/` - Contains definitions for python wrappers of the modules above.
 * `tests/` - Provides unit tests to validate the implementation.
 
@@ -21,5 +21,13 @@ Code is currently documented with in-line comments (doxygen coming soon!). For e
 
 [TODO] Document Install
 
+[TODO] Document PointCloud Usage
+
 [TODO] Document independence to other libraries
 
+#### Dependencies
+The following libraries are dependencies of ScanContext:
+* Eigen3 [Matrix Math] - Must be installed on the system
+* nanoflann [KDTrees in Database] - Included automatically via fetch content
+* Pybind11 [Python Bindings] - Enables python bindings (ONLY if `-DSCAN_CONTEXT_ENABLE_PYTHON=TRUE`)
+* gtest [Unit Testing Framework] - Provides unit testing framework (ONLY if `-DSCAN_CONTEXT_ENABLE_TEST=TRUE`)

@@ -16,8 +16,6 @@
  * ##     ## ##       ##       ##        ##       ##    ##  ##    ##
  * ##     ## ######## ######## ##        ######## ##     ##  ######
  */
-typedef ScanContext<Eigen::Vector3d> ScanContextEigen;
-typedef ScanContextDatabase<Eigen::Vector3d> DatabaseEigen;
 
 std::vector<Eigen::Vector3d> randomPCD(size_t num_pts, double min = -60, double max = 60) {
   std::default_random_engine generator(std::chrono::system_clock::now().time_since_epoch().count());
@@ -29,10 +27,10 @@ std::vector<Eigen::Vector3d> randomPCD(size_t num_pts, double min = -60, double 
   return pcd;
 }
 
-ScanContextEigen randomSC(size_t num_pts, ScanContextEigen::Params params) {
+ScanContext randomSC(size_t num_pts, ScanContext::Params params) {
   // Will generate pts outside of max range, due to uniform sampling, this is desired
   std::vector<Eigen::Vector3d> pcd = randomPCD(num_pts, -params.max_range, params.max_range);
-  return ScanContextEigen(pcd, params);
+  return ScanContext::fromScan<ParenAccessor>(pcd, params);
 }
 
 /**
@@ -45,13 +43,13 @@ ScanContextEigen randomSC(size_t num_pts, ScanContextEigen::Params params) {
  *  ######   #######  ##    ##  ######     ##    ##     ## ##    ##    ##     ######
  */
 
-std::pair<ScanContextEigen::Params, DatabaseEigen::Params> params() {
-  ScanContextEigen::Params sc_params;
+std::pair<ScanContext::Params, ScanContextDatabase::Params> params() {
+  ScanContext::Params sc_params;
   sc_params.max_range = 40;
   sc_params.number_sectors = 60;
   sc_params.number_rings = 20;
 
-  DatabaseEigen::Params db_params;
+  ScanContextDatabase::Params db_params;
   db_params.sc_params = sc_params;
   db_params.number_ring_key_nn = 5;
   db_params.kdtree_rebuild_threshold = 100;
@@ -69,12 +67,12 @@ std::pair<ScanContextEigen::Params, DatabaseEigen::Params> params() {
  *    ##    ########  ######     ##     ######
  */
 /*********************************************************************************************************************/
-TEST(TestScanContext, Correctness) {
+TEST(TestScanContextDatabase, Correctness) {
   auto [sc_params, db_params] = params();
   db_params.number_ring_key_nn = 1;
 
-  DatabaseEigen database(db_params);
-  std::vector<ScanContextEigen> all_sc;
+  ScanContextDatabase database(db_params);
+  std::vector<ScanContext> all_sc;
 
   // Add descriptors to the database
   for (size_t i = 0; i < 125; i++) {
@@ -89,12 +87,12 @@ TEST(TestScanContext, Correctness) {
   }
 
   // Generate a query
-  ScanContextEigen query = randomSC(5000, sc_params);
+  ScanContext query = randomSC(5000, sc_params);
   std::optional<size_t> idx = database.query(query);
   ASSERT_TRUE(idx);
 
   // Ensure that this is in fact the closest according to ring key
-  ScanContextEigen closest = all_sc[*idx];
+  ScanContext closest = all_sc[*idx];
   double closest_distance = query.ringKeyDistance(closest);
   for (size_t i = 25; i < 125; i++) {
     ASSERT_LE(closest_distance, query.ringKeyDistance(all_sc[i]));
@@ -102,12 +100,12 @@ TEST(TestScanContext, Correctness) {
 }
 
 /*********************************************************************************************************************/
-TEST(TestScanContext, EmptyTree) {
+TEST(TestScanContextDatabase, EmptyTree) {
   auto [sc_params, db_params] = params();
   // Generate the database
-  DatabaseEigen database(db_params);
+  ScanContextDatabase database(db_params);
   // Generate a query
-  ScanContextEigen query = randomSC(5000, sc_params);
+  ScanContext query = randomSC(5000, sc_params);
 
   // Add descriptors to the database
   for (size_t i = 0; i < 125; i++) {
@@ -126,25 +124,25 @@ TEST(TestScanContext, EmptyTree) {
 }
 
 /*********************************************************************************************************************/
-TEST(TestScanContext, DeletedTree) {
+TEST(TestScanContextDatabase, DeletedTree) {
   auto [sc_params, db_params] = params();
   // Generate the database
-  DatabaseEigen database(db_params);
+  ScanContextDatabase database(db_params);
   // Generate a query
-  ScanContextEigen query = randomSC(5000, sc_params);
+  ScanContext query = randomSC(5000, sc_params);
   // test
   std::optional<size_t> idx = database.query(query);
   ASSERT_FALSE(idx);
 }
 
 /*********************************************************************************************************************/
-TEST(TestScanContext, KnnGreaterThanTreeSize) {
+TEST(TestScanContextDatabase, KnnGreaterThanTreeSize) {
   auto [sc_params, db_params] = params();
   // Generate the database
-  DatabaseEigen database(db_params);
+  ScanContextDatabase database(db_params);
   database.insert(0, randomSC(5000, sc_params));
   // Generate a query
-  ScanContextEigen query = randomSC(5000, sc_params);
+  ScanContext query = randomSC(5000, sc_params);
   // test
   std::optional<size_t> idx = database.query(query);
   ASSERT_TRUE(idx);
@@ -152,13 +150,13 @@ TEST(TestScanContext, KnnGreaterThanTreeSize) {
 }
 
 /*********************************************************************************************************************/
-TEST(TestScanContext, KGreaterThanTreeSize) {
+TEST(TestScanContextDatabase, KGreaterThanTreeSize) {
   auto [sc_params, db_params] = params();
   // Generate the database
-  DatabaseEigen database(db_params);
+  ScanContextDatabase database(db_params);
   database.insert(0, randomSC(5000, sc_params));
   // Generate a query
-  ScanContextEigen query = randomSC(5000, sc_params);
+  ScanContext query = randomSC(5000, sc_params);
   // test
   std::vector<size_t> result = database.queryK(query, 10);
   ASSERT_EQ(result.size(), 1);
@@ -166,25 +164,25 @@ TEST(TestScanContext, KGreaterThanTreeSize) {
 }
 
 /*********************************************************************************************************************/
-TEST(TestScanContext, TestThreshold) {
+TEST(TestScanContextDatabase, TestThreshold) {
   auto [sc_params, db_params] = params();
   // Generate the database
-  DatabaseEigen database(db_params);
+  ScanContextDatabase database(db_params);
   database.insert(0, randomSC(5000, sc_params));
   database.insert(1, randomSC(5000, sc_params));
   // Generate a query
   // Distance will be ~ 1 to an empty descriptor
-  ScanContextEigen query = ScanContextEigen({}, sc_params);
+  ScanContext query = ScanContext(sc_params);
   // test
   std::optional<size_t> idx = database.query(query);
   ASSERT_FALSE(idx);
 }
 
 /********************************************************************************************************************
-TEST(TestScanContext, ProfileRebuild100) {
+TEST(TestScanContextDatabase, ProfileRebuild100) {
   auto [sc_params, db_params] = params();
 
-  DatabaseEigen database(db_params);
+  ScanContextDatabase database(db_params);
 
   // Add descriptors to the database
   double insert_total = 0;
@@ -214,11 +212,11 @@ TEST(TestScanContext, ProfileRebuild100) {
 */
 
 /*******************************************************************************************************************
-TEST(TestScanContext, ProfileRebuild1) {
+TEST(TestScanContextDatabase, ProfileRebuild1) {
   auto [sc_params, db_params] = params();
   db_params.kdtree_rebuild_threshold = 1;
 
-  DatabaseEigen database(db_params);
+  ScanContextDatabase database(db_params);
 
   // Add descriptors to the database
   double insert_total = 0;

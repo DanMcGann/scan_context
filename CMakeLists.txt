@@ -1,6 +1,7 @@
 project(ScanContext CXX C)
 cmake_minimum_required(VERSION 2.8.3)
 set (CMAKE_CXX_STANDARD 17)
+set(CMAKE_SKIP_INSTALL_RULES YES)
 
 message(STATUS "================  BUILDING SCANCONTEXT  ======================")
 
@@ -20,18 +21,21 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(nanoflann)
 
 # Define the library
-add_library(ScanContext INTERFACE)
-target_link_libraries(ScanContext INTERFACE Eigen3::Eigen nanoflann)
-target_include_directories(ScanContext INTERFACE "${CMAKE_CURRENT_SOURCE_DIR}/include")
+file(GLOB scan_context_srcs "${CMAKE_CURRENT_SOURCE_DIR}/scan_context/src/*.cpp")
+file(GLOB scan_context_hdrs "${CMAKE_CURRENT_SOURCE_DIR}/scan_context/include/scan_context/*.h")
+
+add_library(ScanContext SHARED ${scan_context_srcs} ${scan_context_hdrs})
+target_link_libraries(ScanContext PUBLIC Eigen3::Eigen nanoflann)
+target_include_directories(ScanContext PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/scan_context/include")
 
 
 # If testing is configured, setup the tests
-if (${ENABLE_TESTS})
+if (${SCAN_CONTEXT_ENABLE_TESTS})
   add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/tests")
 endif()
 
 
 # If python bindings are configured, build the python bindings
-if (${ENABLE_PYTHON})
+if (${SCAN_CONTEXT_ENABLE_PYTHON})
   add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/python")
 endif()

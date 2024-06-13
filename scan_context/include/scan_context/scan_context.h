@@ -10,12 +10,13 @@
  */
 
 #pragma once
+#include <scan_context/types.h>
+
 #include <Eigen/Dense>
 #include <cstddef>
 #include <vector>
 
 /// @brief The Scan Context Descriptor
-template <class PointType>
 class ScanContext {
   /** TYPES **/
  public:
@@ -33,7 +34,6 @@ class ScanContext {
     double max_range{80};
 
     bool equals(const Params& other) const;
-    bool operator()(const Params& other) const;
   };
 
   /** Fields **/
@@ -49,8 +49,19 @@ class ScanContext {
 
   /** Interface **/
  public:
-  /// @brief Constructs a ScanContext Descriptor for the lidar_scan using the given params
-  ScanContext(const std::vector<PointType>& lidar_scan, const Params& params);
+  /// @brief Constructs an Empty ScanContext. See fromScan to construct from a lidar Scan.
+  ScanContext(const Params& params);
+
+  /** @brief Constructs a ScanContext descriptor from a lidar scan
+   * @tparam Accessor - Class used to access the x, y, z data from points in the point clouds
+   * @tparam PointType - The type of the point in the pointcloud must contain x, y, z data in some form
+   * @tparam Alloc - The allocator used for the pointcloud vector
+   * @param lidar_scan: The lidar scan to describe
+   * @param params: The ScanContext parameters
+   * @return A ScanContext descriptor for lidar_scan
+  */
+  template <template <typename> class Accessor = FieldAccessor, typename PointType, template <typename> class Alloc>
+  static ScanContext fromScan(const std::vector<PointType, Alloc<PointType>>& lidar_scan, const Params& params);
 
   /// @brief Accessor to the descriptor that guards against modification
   const Eigen::MatrixXd& descriptor() const;
@@ -69,7 +80,7 @@ class ScanContext {
    * @note Distance is symmetric i.e. this.distance(other) == other.distance(this)
    * @note we can only compute distances for "comparable" descriptors i.e. those with equal params
    */
-  double distance(const ScanContext<PointType>& other) const;
+  double distance(const ScanContext& other) const;
 
   /** @brief Computes the distance between the ring key of this descriptor and the ring key of the other descriptor.
    * Distance is defined as the euclidean distance between the two ring key vectors.
@@ -77,7 +88,7 @@ class ScanContext {
    * @returns The ring key distance between two descriptors
    * @note By definition ring key distance is symmetric
    */
-  double ringKeyDistance(const ScanContext<PointType>& other) const;
+  double ringKeyDistance(const ScanContext& other) const;
 
   /** Helpers **/
  private:
@@ -88,7 +99,7 @@ class ScanContext {
    * @returns The cosine distance between this rotated by sector offset and other
    * @note Assumes that this and other are comparable
    */
-  double shiftedDistance(const size_t& sector_offset, const ScanContext<PointType>& other) const;
+  double shiftedDistance(const size_t& sector_offset, const ScanContext& other) const;
 };
 
 /// Include the implementation of the descriptor
