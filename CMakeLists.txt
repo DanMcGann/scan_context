@@ -30,12 +30,12 @@ target_include_directories(ScanContext PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/scan_
 
 
 # If testing is configured, setup the tests
-if (${SCAN_CONTEXT_ENABLE_TESTS})
+if (${SCAN_CONTEXT_BUILD_TESTS})
   add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/tests")
 endif()
 
 
 # If python bindings are configured, build the python bindings
-if (${SCAN_CONTEXT_ENABLE_PYTHON})
+if (${SCAN_CONTEXT_BUILD_PYTHON})
   add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/python")
 endif()
