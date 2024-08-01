@@ -61,9 +61,9 @@ Unfortunately, python does not provide the same level of convenience to include 
   * `cmake .. -DSCAN_CONTEXT_BUILD_PYTHON=TRUE`
   * `make`
 * Install the Python Bindings
-  * `make python-install`
+  * `make scan-context-python-install`
 
-Note: The CMake target `python-install` uses `pip` under the hood, this means that you can specifically install `scan_context` within conda or similar environments.
+Note: The CMake target `scan-context-python-install` uses pip under the hood, this means that you can specifically install `scan_context` within conda or similar environment by setting the CMake variables `Python_EXECUTABLE` to the executable of the environment (This can be found by running `which python` while the environment is enabled). We also provide the CMake target `scan-context-python-uninstall` to easily remove the module.
 
 
 #### Testing
@@ -75,7 +75,7 @@ To run the unit tests:
   * `cmake .. -DSCAN_CONTEXT_BUILD_PYTHON=TRUE`
   * `make`
 * Run the Unit tests
-  * `make test`
+  * `make scan-context-test` or `make scan-context-check`
 
 # Issues
 If you have any issues with this library please submit a github ticket. If you are reporting a bug please provide a unit test that demonstrates the bug!

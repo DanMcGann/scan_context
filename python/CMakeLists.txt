@@ -34,12 +34,12 @@ file(GENERATE OUTPUT ${SCAN_CONTEXT_PYTHON_BUILD_DIRECTORY}/scan_context/__init_
 
 # Setup the install command. Simply delegates to pip (should work with environmets)
 find_package(Python COMPONENTS Interpreter Development REQUIRED)
-add_custom_target(python-install
+add_custom_target(scan-context-python-install
         COMMAND ${Python_EXECUTABLE} -m pip install .
         DEPENDS scan_context_python
         WORKING_DIRECTORY ${SCAN_CONTEXT_PYTHON_BUILD_DIRECTORY})
 
 # Setup uninstall command. This can also be done with pip
-add_custom_target(python-uninstall
-        COMMAND pip uninstall scan_context
+add_custom_target(scan-context-python-uninstall
+        COMMAND ${Python_EXECUTABLE} -m pip uninstall scan_context
         WORKING_DIRECTORY ${SCAN_CONTEXT_PYTHON_BUILD_DIRECTORY})

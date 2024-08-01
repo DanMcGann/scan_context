@@ -17,5 +17,5 @@ target_link_libraries(scan-context-tests PUBLIC ScanContext Eigen3::Eigen gtest 
 add_test(NAME scan-context-tests COMMAND scan-context-tests)
 
 # Make runnable from "make check" or "make test"
-add_custom_target(check COMMAND scan-context-tests)
-add_custom_target(test COMMAND scan-context-tests)
+add_custom_target(scan-context-check COMMAND scan-context-tests)
+add_custom_target(scan-context-test COMMAND scan-context-tests)
